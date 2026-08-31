@@ -17,7 +17,7 @@ final class ErrorNotificationHandler: NSObject {
         super.init()
 
         NotificationCenter.default.addObserver(forName: .serverMessage, object: nil, queue: .main) { notification in
-            SharedAppProvider.onMain {
+            MainActor.assumeIsolated {
                 guard let owner = SharedAppProvider.currentTopViewController else {
                     DDLogError("Unable to show alert for 'serverMessage' notification")
                     return
@@ -36,7 +36,7 @@ final class ErrorNotificationHandler: NSObject {
 
         NotificationCenter.default
             .addObserver(forName: .errorConnectionFailed, object: nil, queue: .main) { notification in
-                SharedAppProvider.onMain {
+                MainActor.assumeIsolated {
                     guard let owner = SharedAppProvider.currentTopViewController else {
                         DDLogError("Unable to show alert for 'errorConnectionFailed' notification")
                         return
@@ -54,7 +54,7 @@ final class ErrorNotificationHandler: NSObject {
             }
 
         NotificationCenter.default.addObserver(forName: .errorPublicKeyMismatch, object: nil, queue: .main) { _ in
-            SharedAppProvider.onMain {
+            MainActor.assumeIsolated {
                 guard let owner = SharedAppProvider.currentTopViewController else {
                     DDLogError("Unable to show alert for 'errorPublicKeyMismatch' notification")
                     return
@@ -72,7 +72,7 @@ final class ErrorNotificationHandler: NSObject {
         }
 
         NotificationCenter.default.addObserver(forName: .errorRogueDevice, object: nil, queue: .main) { _ in
-            SharedAppProvider.onMain {
+            MainActor.assumeIsolated {
                 guard let owner = SharedAppProvider.currentTopViewController else {
                     DDLogError("Unable to show alert for 'errorRogueDevice' notification")
                     return

@@ -64,10 +64,11 @@ class CoreDataContactListProvider<Entity: NSObject, BusinessEntity: NSObject>: N
     // MARK: - Functions
     
     func entity(for id: NSManagedObjectID) -> BusinessEntity? {
-        guard let entity = entityFetcher.managedObject(with: id) as? Entity else {
+        guard let entity = entityFetcher.existingObject(with: id) as? Entity else {
+            DDLogNotice("[ContactList] No entity for object ID (deleted or stale): \(id)")
             return nil
         }
-        
+
         return entityResolver(entity)
     }
     

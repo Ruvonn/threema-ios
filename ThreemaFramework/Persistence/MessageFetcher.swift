@@ -251,7 +251,26 @@ public final class MessageFetcher: NSObject {
         // This might be 0 before the first save after the migration to V35
         entityManager.entityFetcher.executeCount(countFetchRequest)
     }
-    
+
+    /// Number of messages in the conversation, counted on the passed context
+    ///
+    /// - Parameter managedObjectContext: Context to execute the count on.
+    /// - Returns: Number of messages in this conversation
+    public func count(using managedObjectContext: NSManagedObjectContext) -> Int {
+        var count = 0
+
+        managedObjectContext.performAndWait {
+            do {
+                count = try managedObjectContext.count(for: countFetchRequest)
+            }
+            catch {
+                DDLogError("Unable to count messages of conversation: \(error)")
+            }
+        }
+
+        return count
+    }
+
     /// Number of messages in conversation after the passed date
     /// - Parameter date: All messages with a `date` or `remoteSentDate` newer than this are counted
     /// - Returns: Number of messages in this conversation after the passed date

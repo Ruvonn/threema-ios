@@ -215,10 +215,10 @@ public final class DatabaseContext: NSObject, DatabaseContextProtocol {
             return
         }
         
-        for objectID in objectIDs {
-            privateContext.perform {
-                guard let object = try? privateContext.existingObject(with: objectID) else {
-                    return
+        privateContext.perform {
+            for objectID in objectIDs {
+                guard let object = privateContext.registeredObject(for: objectID) else {
+                    continue
                 }
                 
                 privateContext.refresh(object, mergeChanges: true)

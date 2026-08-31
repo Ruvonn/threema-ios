@@ -1,3 +1,4 @@
+import CocoaLumberjackSwift
 import FileUtility
 import RemoteSecretProtocol
 
@@ -63,7 +64,9 @@ public final class RemoteSecretProvider: Sendable {
     /// - Parameter remoteSecretManager: The resolved RS manager for this session.
     private func set(_ remoteSecretManager: any RemoteSecretManagerProtocol) {
         _remoteSecretManager = remoteSecretManager
-        
+
+        DDLogNotice("[RemoteSecret] Provider set (enabled=\(remoteSecretManager.isRemoteSecretEnabled))")
+
         FileUtility.updateSharedInstance(with: FileUtilityRemoteSecretDecorator(
             wrapped: FileUtility(),
             remoteSecretManager: remoteSecretManager,

@@ -955,15 +955,17 @@ final class SafeManager: NSObject, SafeManagerProtocol {
             DDLogWarn("WARNING Threema Safe backup not successfully since 7 days or more")
 
             if isDateOlderThenDays(date: safeConfigManager.getLastAlertBackupFailed(), days: 1),
-               let topViewController = SharedAppProvider.onMain({
-                   SharedAppProvider.currentTopViewController
-               }),
                let seconds = safeConfigManager.getLastBackup()?.timeIntervalSinceNow,
                let days = Double(exactly: seconds / 86400)?.rounded(FloatingPointRoundingRule.up) {
-                    
+
                 safeConfigManager.setLastAlertBackupFailed(Date())
-                
-                DispatchQueue.main.async {
+
+                // This runs on the background backup queue. Read the top view controller and present on the main
+                // actor asynchronously instead of blocking the main thread from here.
+                Task { @MainActor in
+                    guard let topViewController = SharedAppProvider.currentTopViewController else {
+                        return
+                    }
                     UIAlertTemplate.showAlert(
                         owner: topViewController,
                         title: String.localizedStringWithFormat(

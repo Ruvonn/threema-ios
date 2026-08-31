@@ -82,17 +82,7 @@ import UIKit
             return
         }
 
-        let isAppLocked: Bool = SharedAppProvider.onMain {
-            SharedAppProvider.isAppLocked
-        }
-        guard !isAppLocked else {
-            return
-        }
-
-        let isAppActive: Bool = SharedAppProvider.onMain {
-            SharedAppProvider.isAppActive
-        }
-        guard isAppActive else {
+        guard SharedAppProvider.isAppActive else {
             queue.append(messageObjectID)
             return
         }
@@ -110,6 +100,11 @@ import UIKit
             }
 
             Task { @MainActor in
+                // The app can be active while the passcode lock screen is up; don't reveal a preview then.
+                guard !SharedAppProvider.isAppLocked else {
+                    return
+                }
+
                 SharedAppProvider.execute { coordinator in
                     guard coordinator.canDisplayNotificationToast(for: message) else {
                         return
@@ -138,10 +133,7 @@ import UIKit
     }
 
     @objc private func didBecomeActive(_ notification: Notification) {
-        let isAppActive: Bool = SharedAppProvider.onMain {
-            SharedAppProvider.isAppActive
-        }
-        guard isAppActive else {
+        guard SharedAppProvider.isAppActive else {
             return
         }
 

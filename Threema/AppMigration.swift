@@ -982,9 +982,7 @@ public final class AppMigration {
             Colors.resolveTheme()
         }
 
-        if SharedAppProvider.onMain({
-            SharedAppProvider.isSceneDelegateDevelopment
-        }) {
+        if SharedAppProvider.isSceneDelegateDevelopment {
             migrateUserInterfaceStyleStoringKey()
         }
 

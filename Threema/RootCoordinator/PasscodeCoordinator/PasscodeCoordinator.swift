@@ -52,7 +52,7 @@ final class PasscodeCoordinator: NSObject, Coordinator {
         appContainer: AppDependencyContainer,
         delegate: PasscodeCoordinatorDelegate,
         setAppLocked: @escaping (Bool) -> Void = { isAppLocked in
-            SharedAppProvider.onMain({
+            MainActor.assumeIsolated({
                 SceneDelegate.current?.isAppLocked = isAppLocked
             })
         },

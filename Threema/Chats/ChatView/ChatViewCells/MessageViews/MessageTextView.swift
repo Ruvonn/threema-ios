@@ -416,7 +416,7 @@ extension MessageTextView: UITextViewDelegate {
         switch textItem.content {
         case let .link(url):
             guard
-                let topViewController = SharedAppProvider.onMain({
+                let topViewController = MainActor.assumeIsolated({
                     SharedAppProvider.currentTopViewController
                 }),
                 IDNASafetyHelper.isLegalURL(

@@ -26,9 +26,7 @@ final class IncomingMessageManager: NSObject {
     private var completionHandler: (() -> Void)?
     
     private var isAppActive: Bool {
-        SharedAppProvider.onMain {
-            SharedAppProvider.isAppActive
-        }
+        SharedAppProvider.isAppActive
     }
 
     required init(
@@ -286,10 +284,13 @@ extension IncomingMessageManager: MessageProcessorDelegate {
             fatalError("Parameter `baseMessageEntityObject` must be type of `BaseMessageEntity`")
         }
 
+        // Read before entering the Core Data block, it must not be read while its queue is occupied
+        let isAppActive = isAppActive
+
         businessInjector.entityManager.performAndWaitSave {
             if let msg = self.businessInjector.entityManager.entityFetcher
                 .managedObject(with: baseMessage.objectID) as? BaseMessageEntity {
-                if !self.isAppActive {
+                if !isAppActive {
                     self.dirtyObjectManager.markAsDirty(objectID: msg.objectID) {
                         AppGroup.notifySyncNeeded()
                     }

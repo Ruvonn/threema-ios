@@ -6,15 +6,10 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     private(set) weak static var current: SceneDelegate?
     
+    /// Readable from any thread (see `AppBackgroundState`). Backed by a write-through flag updated on every
+    /// foreground/background transition, so it no longer blocks on `DispatchQueue.main.sync` off the main thread.
     static var isAppInBackground: Bool {
-        if Thread.isMainThread {
-            UIApplication.shared.applicationState == .background
-        }
-        else {
-            DispatchQueue.main.sync {
-                UIApplication.shared.applicationState == .background
-            }
-        }
+        AppBackgroundState.isInBackground
     }
     
     var currentTopViewController: UIViewController? {
@@ -28,7 +23,13 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
     private(set) var rootCoordinator: RootCoordinator?
     
-    var isActive: Bool = false
+    /// Write through, so the state can be read from any thread (see `AppActiveState`)
+    var isActive = false {
+        didSet {
+            AppActiveState.isActive = isActive
+        }
+    }
+
     var isAppLocked: Bool = false
     var orientationLock: UIInterfaceOrientationMask = .all
 
@@ -88,6 +89,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     func sceneDidBecomeActive(_ scene: UIScene) {
         isActive = true
+        AppBackgroundState.isInBackground = false
         rootCoordinator?.hidePrivacyOverlay()
     }
 
@@ -99,10 +101,12 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func sceneWillEnterForeground(_ scene: UIScene) {
+        AppBackgroundState.isInBackground = false
         rootCoordinator?.sceneWillEnterForeground()
     }
 
     func sceneDidEnterBackground(_ scene: UIScene) {
+        AppBackgroundState.isInBackground = true
         rootCoordinator?.sceneDidEnterBackground()
     }
     

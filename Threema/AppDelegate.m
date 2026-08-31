@@ -107,6 +107,12 @@ static const DDLogLevel ddLogLevel = DDLogLevelNotice;
 
 #pragma mark - Properties
 
+/// Write through, so the state can be read from any thread (see `AppActiveState`)
+- (void)setActive:(BOOL)active {
+    _active = active;
+    [AppActiveState setIsActive:active];
+}
+
 + (AppDelegate*)sharedAppDelegate {
     __block AppDelegate *appDelegate = nil;
     if ([NSThread isMainThread]) {
@@ -746,6 +752,9 @@ static const DDLogLevel ddLogLevel = DDLogLevelNotice;
      */
     DDLogNotice(@"AppState: applicationDidEnterBackground");
 
+    // Write through, so the state can be read from any thread (see `AppBackgroundState`)
+    [AppBackgroundState setIsInBackground:YES];
+
     // App actually went to the app switcher / background: cancel any deferred
     // biometric unlock so we stay locked and re-authenticate on return.
     biometricUnlockPending = NO;
@@ -836,6 +845,10 @@ static const DDLogLevel ddLogLevel = DDLogLevelNotice;
      Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
      */
     DDLogNotice(@"AppState: applicationWillEnterForeground");
+
+    // Write through, so the state can be read from any thread (see `AppBackgroundState`)
+    [AppBackgroundState setIsInBackground:NO];
+
     [DebugLog logAppVersion];
 
     if (isBusinessInjectorReady == NO) {
@@ -959,7 +972,10 @@ static const DDLogLevel ddLogLevel = DDLogLevelNotice;
      Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
      */
     DDLogNotice(@"AppState: applicationDidBecomeActive");
-    
+
+    // Write through, so the state can be read from any thread (see `AppBackgroundState`)
+    [AppBackgroundState setIsInBackground:NO];
+
     [self runWhenBusinessReadyWithTask:^{
         dispatch_async(dispatch_get_main_queue(), ^{
             DDLogNotice(@"AppState: applicationDidBecomeActive executing task");

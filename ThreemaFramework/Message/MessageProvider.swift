@@ -605,7 +605,11 @@ public final class MessageProvider: NSObject {
     }
     
     @objc private func batchDeletedOldMessages() {
-        numberOfMessages = messageFetcher.count()
+        // Count on the context of the fetched results controller, not on `messageFetcher`s own one.
+        // Counting on the context of the fetched results controller also keeps this number consistent with the snapshot
+        // that is published below.
+        numberOfMessages = messageFetcher.count(using: fetchedResultsController.managedObjectContext)
+
         if currentOffset > numberOfMessages {
             configureLoadingMessagesAtBottom()
         }

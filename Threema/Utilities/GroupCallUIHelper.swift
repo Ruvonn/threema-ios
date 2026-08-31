@@ -13,7 +13,7 @@ final class GroupCallUIHelper: NSObject {
 
 extension GroupCallUIHelper: GroupCallManagerSingletonUIDelegate {
     private var isAppLocked: Bool {
-        SharedAppProvider.onMain {
+        MainActor.assumeIsolated {
             SharedAppProvider.isAppLocked
         }
     }

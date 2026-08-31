@@ -601,7 +601,7 @@ extension ConversationExporter {
         let item = UIActivityHelperFactory.makeItemSource(type: .zipFile(url: zipURL, subject: emailSubject))
         let activityViewController = UIActivityViewController(activityItems: [item], applicationActivities: nil)
 
-        if let topViewController = SharedAppProvider.onMain({ SharedAppProvider.keyWindow?.rootViewController }),
+        if let topViewController = MainActor.assumeIsolated({ SharedAppProvider.keyWindow?.rootViewController }),
            topViewController.traitCollection.horizontalSizeClass == .regular {
             let rect = viewController!.view.convert(viewController!.view.frame, to: viewController!.view)
             activityViewController.popoverPresentationController?.sourceRect = rect

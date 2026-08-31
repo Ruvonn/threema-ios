@@ -127,7 +127,6 @@ final class ConversationListViewController: ThemedTableViewController {
         controller.obscuresBackgroundDuringPresentation = false
         
         controller.searchBar.placeholder = #localize("conversations_global_search_placeholder")
-        controller.searchBar.scopeButtonTitles = globalSearchResultsViewController.searchScopeButtonTitles
         controller.searchBar.searchTextField.allowsCopyingTokens = false
         
         return controller
@@ -193,7 +192,6 @@ final class ConversationListViewController: ThemedTableViewController {
     
     private var setBackButtonDebounceTask: Task<Void, Never>?
     private let isAppInBackground: () -> Bool
-    private var didApplyReduceTransparencyLayoutFix = false
 
     // MARK: - Lifecycle
     
@@ -298,20 +296,6 @@ final class ConversationListViewController: ThemedTableViewController {
         // This and the opposite in `viewWillDisappear` is needed to make a search controller work that is added in a
         // child view controller using the same navigation bar. See ChatSearchController for details.
         definesPresentationContext = true
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-
-        // Fixes an issue where the navigation bar would cover table view content when reduce transparency is enabled.
-        // Only needs to run once!
-        if UIAccessibility.isReduceTransparencyEnabled, !didApplyReduceTransparencyLayoutFix {
-            didApplyReduceTransparencyLayoutFix = true
-            UIView.performWithoutAnimation {
-                searchController.isActive = true
-                searchController.isActive = false
-            }
-        }
     }
     
     override func viewWillLayoutSubviews() {

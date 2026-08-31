@@ -2830,7 +2830,7 @@ final class VoIPCallService {
             self.callKitManager.endCall(with: self.callID)
             guard
                 self.peerWasConnected,
-                let rootVC = SharedAppProvider.onMain({
+                let rootVC = MainActor.assumeIsolated({
                     SharedAppProvider.keyWindow?.rootViewController
                 })
             else {

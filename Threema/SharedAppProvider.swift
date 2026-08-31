@@ -1,4 +1,5 @@
 import CocoaLumberjackSwift
+import os
 import UIKit
 
 /// Centralized accessor for app-level shared state (window, top view controller,
@@ -13,7 +14,8 @@ import UIKit
 @MainActor
 enum SharedAppProvider {
     
-    static var isSceneDelegateDevelopment: Bool {
+    /// Compile time flag, thus it needs no isolation
+    nonisolated static var isSceneDelegateDevelopment: Bool {
         #if SCENE_DELEGATE_ROOT_COORDINATOR_DEVELOPMENT
             return true
         #else
@@ -52,13 +54,9 @@ enum SharedAppProvider {
 
     // MARK: - Lifecycle
 
-    static var isAppActive: Bool {
-        if isSceneDelegateDevelopment {
-            SceneDelegate.current?.isActive == true
-        }
-        else {
-            AppDelegate.shared()?.active == true
-        }
+    /// Readable from any thread
+    nonisolated static var isAppActive: Bool {
+        AppActiveState.isActive
     }
 
     static var isAppLocked: Bool {
@@ -130,31 +128,11 @@ enum SharedAppProvider {
         }
     }
 
-    // MARK: - Main-thread bridge
-
-    /// Synchronously executes a closure on the main thread, asserting MainActor
-    /// isolation. Use from nonisolated callers that need to read @MainActor
-    /// properties (e.g., `isCompactSizeClass`) without converting the caller
-    /// to async.
-    nonisolated static func onMain<T: Sendable>(_ closure: @MainActor () -> T) -> T {
-        if Thread.isMainThread {
-            MainActor.assumeIsolated {
-                closure()
-            }
-        }
-        else {
-            DispatchQueue.main.sync {
-                MainActor.assumeIsolated {
-                    closure()
-                }
-            }
-        }
-    }
-
     // MARK: - Class-level bridges
 
-    static var isAppInBackground: Bool {
-        SceneDelegate.isAppInBackground
+    /// Readable from any thread (see `AppBackgroundState`), so it never blocks on the main thread.
+    nonisolated static var isAppInBackground: Bool {
+        AppBackgroundState.isInBackground
     }
 
     static var keyWindow: UIWindow? {
@@ -194,4 +172,56 @@ enum SharedAppProvider {
             }
         }
     }
+}
+
+// MARK: - AtomicFlag
+
+/// Thread-safe boolean flag, readable and writable from any thread. Backs the app lifecycle flags below so they can be
+/// read without hopping to the main thread.
+final class AtomicFlag: @unchecked Sendable {
+
+    private let lock: OSAllocatedUnfairLock<Bool>
+
+    init(_ initialValue: Bool) {
+        lock = OSAllocatedUnfairLock(initialState: initialValue)
+    }
+
+    var value: Bool {
+        get { lock.withLock { $0 } }
+        set { lock.withLock { $0 = newValue } }
+    }
+}
+
+// MARK: - AppActiveState
+
+/// Thread-safe storage of `SharedAppProvider.isAppActive`
+///
+/// `AppDelegate` and `SceneDelegate` write it on every change, so it can be read without hopping to the main thread.
+@objc final class AppActiveState: NSObject {
+
+    @objc static var isActive: Bool {
+        get { state.value }
+        set { state.value = newValue }
+    }
+
+    private static let state = AtomicFlag(false)
+}
+
+// MARK: - AppBackgroundState
+
+/// Thread-safe storage of `SharedAppProvider.isAppInBackground`
+///
+/// `AppDelegate` and `SceneDelegate` write it on every foreground/background transition, so it can be read without
+/// hopping to the main thread. Previously `isAppInBackground` read `UIApplication.applicationState` behind a
+/// `DispatchQueue.main.sync`, which deadlocked (app freeze) when read off the main thread from a context the main
+/// thread waits on — e.g. from inside a Core Data `performAndWait` block (see `WCSessionManager`). Mirrors
+/// `AppActiveState`.
+@objc final class AppBackgroundState: NSObject {
+
+    @objc static var isInBackground: Bool {
+        get { state.value }
+        set { state.value = newValue }
+    }
+
+    private static let state = AtomicFlag(false)
 }

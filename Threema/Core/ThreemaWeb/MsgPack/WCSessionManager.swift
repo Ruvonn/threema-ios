@@ -206,23 +206,25 @@ extension WCSessionManager {
                         whiteList: webHosts
                     ) == false {
                         DDLogNotice("[Threema Web] Scanned qr code host is not white listed")
-                        if SharedAppProvider.onMain({
-                            SharedAppProvider.isAppInBackground
-                        }) {
+                        if SharedAppProvider.isAppInBackground {
                             ThreemaUtilityObjC.sendErrorLocalNotification(
                                 #localize("webClient_scan_error_mdm_host_title"),
                                 body: #localize("webClient_scan_error_mdm_host_message"),
                                 userInfo: nil
                             )
                         }
-                        else if let rootVC = SharedAppProvider.onMain({
-                            SharedAppProvider.keyWindow?.rootViewController
-                        }) {
-                            UIAlertTemplate.showAlert(
-                                owner: rootVC,
-                                title: #localize("webClient_scan_error_mdm_host_title"),
-                                message: #localize("webClient_scan_error_mdm_host_message")
-                            )
+                        else {
+                            // This path can run off the main thread (Core Data work). Present on main asynchronously
+                            // instead of blocking the main thread to read the root view controller.
+                            Task { @MainActor in
+                                if let rootVC = SharedAppProvider.keyWindow?.rootViewController {
+                                    UIAlertTemplate.showAlert(
+                                        owner: rootVC,
+                                        title: #localize("webClient_scan_error_mdm_host_title"),
+                                        message: #localize("webClient_scan_error_mdm_host_message")
+                                    )
+                                }
+                            }
                         }
                         webClientSession.isConnecting = false
                         return
@@ -308,23 +310,25 @@ extension WCSessionManager {
                         whiteList: webHosts
                     ) == false {
                         DDLogError("[Threema Web] Scanned qr code host is not white listed")
-                        if SharedAppProvider.onMain({
-                            SharedAppProvider.isAppInBackground
-                        }) {
+                        if SharedAppProvider.isAppInBackground {
                             ThreemaUtilityObjC.sendErrorLocalNotification(
                                 #localize("webClient_scan_error_mdm_host_title"),
                                 body: #localize("webClient_scan_error_mdm_host_message"),
                                 userInfo: nil
                             )
                         }
-                        else if let rootVC = SharedAppProvider.onMain({
-                            SharedAppProvider.keyWindow?.rootViewController
-                        }) {
-                            UIAlertTemplate.showAlert(
-                                owner: rootVC,
-                                title: #localize("webClient_scan_error_mdm_host_title"),
-                                message: #localize("webClient_scan_error_mdm_host_message")
-                            )
+                        else {
+                            // This path can run off the main thread (Core Data work). Present on main asynchronously
+                            // instead of blocking the main thread to read the root view controller.
+                            Task { @MainActor in
+                                if let rootVC = SharedAppProvider.keyWindow?.rootViewController {
+                                    UIAlertTemplate.showAlert(
+                                        owner: rootVC,
+                                        title: #localize("webClient_scan_error_mdm_host_title"),
+                                        message: #localize("webClient_scan_error_mdm_host_message")
+                                    )
+                                }
+                            }
                         }
                         webClientSession.isConnecting = false
                         return

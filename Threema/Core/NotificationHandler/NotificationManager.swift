@@ -219,7 +219,7 @@ final class NotificationManager: NSObject, NotificationManagerProtocol {
             else if let key = payload["key"] as? String,
                     key == "safe-backup-notification",
                     let notification,
-                    let currentTopViewController = SharedAppProvider.onMain({
+                    let currentTopViewController = MainActor.assumeIsolated({
                         SharedAppProvider.currentTopViewController
                     }) {
                 UIAlertTemplate.showAlert(
@@ -294,7 +294,7 @@ extension NotificationManager {
 extension NotificationManager {
     static func showThreemaWebError(title: String, body: String) {
         guard UIApplication.shared.applicationState != .active else {
-            if let currentTopViewController = SharedAppProvider.onMain({
+            if let currentTopViewController = MainActor.assumeIsolated({
                 SharedAppProvider.currentTopViewController
             }) {
                 UIAlertTemplate.showAlert(

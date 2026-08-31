@@ -630,7 +630,7 @@ extension URLHandler {
 
 extension URLHandler {
     private func handleScannerResult(_ result: QRCodeScannerViewModel.QRCodeResult) {
-        SharedAppProvider.onMain {
+        MainActor.assumeIsolated {
             switch result {
             case let .identityContact(identity: id, publicKey: key, expirationDate: date):
                 let model = ContactIdentityProcessingViewModel(

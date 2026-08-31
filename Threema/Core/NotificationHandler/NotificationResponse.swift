@@ -22,9 +22,8 @@ final class NotificationResponse {
     private var conversation: ConversationEntity?
     
     private var isAppActive: Bool {
-        SharedAppProvider.onMain {
-            SharedAppProvider.isAppActive
-        }
+        // `isAppActive` is thread-safe (lock-backed `AppActiveState`); no main-thread hop needed.
+        SharedAppProvider.isAppActive
     }
 
     required init(

@@ -352,7 +352,12 @@ extension HTTPClient: URLSessionTaskDelegate {
             return try await sslCAHelper.handle(challenge: challenge)
         }
         catch {
-            fatalError("SSLHelper could not handle challenge, because of error: \(error)")
+            // Certificate/TLS validation could not be completed (e.g. TrustKit initialization failed). Fail the
+            // connection safely by cancelling the challenge instead of crashing the whole process — this previously
+            // took down the Notification Extension (and app) on any handling error, affecting every request
+            // regardless of remote secret.
+            DDLogError("SSLHelper could not handle challenge, cancelling connection. Error: \(error)")
+            return (.cancelAuthenticationChallenge, nil)
         }
     }
 }

@@ -48,11 +48,10 @@ public final class ThreemaEnvironment: NSObject {
     
     /// Does this client support Forward Security?
     @objc public static var supportsForwardSecurity: Bool {
-        let bi = BusinessInjector()
-        if bi.userSettings.enableMultiDevice {
+        if UserSettings.shared().enableMultiDevice {
             return false
         }
-        
+
         return true
     }
 

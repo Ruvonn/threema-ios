@@ -208,6 +208,16 @@ extension GlobalSearchResultsViewController: UITableViewDelegate {
 // MARK: - UISearchControllerDelegate, UISearchResultsUpdating
 
 extension GlobalSearchResultsViewController: UISearchControllerDelegate, UISearchResultsUpdating {
+
+    /// Installs the scope titles on the first presentation, and never removes them again.
+    func willPresentSearchController(_ searchController: UISearchController) {
+        guard searchController.searchBar.scopeButtonTitles == nil else {
+            return
+        }
+
+        searchController.searchBar.scopeButtonTitles = searchScopeButtonTitles
+    }
+
     func updateSearchResults(for searchController: UISearchController) {
         
         // This is also called when the search appears/disappears, so we use it to directly show and hide the results

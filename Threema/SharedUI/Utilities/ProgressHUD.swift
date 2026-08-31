@@ -11,7 +11,7 @@ struct ProgressHUD {
     static func make(label: String?) -> ProgressHUD {
         make(
             label: label,
-            on: SharedAppProvider.onMain {
+            on: MainActor.assumeIsolated {
                 SharedAppProvider.currentTopViewController
             }
         )

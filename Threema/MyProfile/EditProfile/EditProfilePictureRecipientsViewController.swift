@@ -9,7 +9,7 @@ final class EditProfilePictureRecipientsViewController: UICollectionViewControll
     
     private enum Constants {
         static var contactsPerRow: Int {
-            SharedAppProvider.onMain {
+            MainActor.assumeIsolated {
                 SharedAppProvider.isCompactSizeClass
             } ? 5 : 7
         }
